@@ -1,0 +1,76 @@
+-- Ammo
+local MAX_AMMO = 30 -- Change this to the maximum ammo per magazine
+local ammo = MAX_AMMO
+
+-- Folders
+local Sounds = script.Parent.Sounds
+local Cursors = script.Parent.Cursors
+
+-- Sounds
+local reload = Sounds.Reload
+local shoot = Sounds.Shoot
+local empty = Sounds.Empty
+
+-- Cursors
+local cursor1 = Cursors.Cursor1.Texture
+
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DamageCharacter = ReplicatedStorage:WaitForChild("DamageCharacter")
+local AmmoCount = ReplicatedStorage:WaitForChild("AmmoCount")
+
+-- Other
+local tool = script.Parent
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- Firing function
+local function fireWeapon()
+	if ammo <= 0 then
+		empty:Play() -- Play Empty sound, when magazine is empty
+		return
+	end
+	
+	shoot:Play() -- Play Shooting sound
+	
+	local rayOrigin = tool.Handle.Position
+	local rayDirection = (mouse.Hit.p - rayOrigin).Unit * 500 -- Change the number for the range of the weapon
+	local ray = Ray.new(rayOrigin, rayDirection)
+	local hit, position = workspace:FindPartOnRay(ray, player.Character, false, true)
+
+	if hit then
+		local character = hit:FindFirstAncestorOfClass("Model")
+		if character and character:FindFirstChild("Humanoid") then
+			DamageCharacter:FireServer(character, 10) -- Change the number for the damage of the weapon
+		end
+	end
+	ammo = ammo - 1
+	AmmoCount.Value = tostring(ammo)
+end
+
+-- Reloading stuff
+local function reloadWeapon()
+	ammo = MAX_AMMO
+	AmmoCount.Value = tostring(ammo)
+end
+
+-- User input processing
+UserInputService.InputBegan:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.R then
+		reloadWeapon()
+		reload:Play() -- play Reload sound
+	end
+end)
+
+-- Cursor change
+tool.Equipped:Connect(function()
+	mouse.Icon = cursor1
+end)
+
+tool.Unequipped:Connect(function()
+	mouse.Icon = ""
+end)
+
+tool.Activated:Connect(fireWeapon)
