@@ -1,0 +1,11 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DamageCharacter = ReplicatedStorage:WaitForChild("DamageCharacter")
+
+local function onDamageCharacter(player, character, damage)
+	local humanoid = character:FindFirstChild("Humanoid")
+	if humanoid then
+		humanoid:TakeDamage(damage)
+	end
+end
+
+DamageCharacter.OnServerEvent:Connect(onDamageCharacter)
